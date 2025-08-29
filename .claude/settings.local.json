@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "Bash(chmod:*)",
+      "Bash(rm:*)",
+      "Bash(npm install)",
+      "Bash(npm audit fix:*)",
+      "Bash(timeout:*)",
+      "Bash(npm start)",
+      "Bash(pip install:*)",
+      "Bash(claude-code --version)",
+      "Bash(CLAUDE_CODE_PATH=\"./mock-claude-code\" ./claude-wrapper \"Test the remote control system\")",
+      "Bash(CLAUDE_CODE_PATH=\"/Users/stathism/Downloads/claudeRemote/wrapper/mock-claude-code\" /Users/stathism/Downloads/claudeRemote/wrapper/claude-wrapper \"Test the remote control system\")",
+      "Bash(python3:*)",
+      "Bash(claude --version)",
+      "Bash(claude --print \"Hello, this is a test\")",
+      "Bash(curl:*)",
+      "Bash(claude --print \"test message\")",
+      "Bash(grep:*)",
+      "Bash(echo $PORT)",
+      "Bash(./terminal_control_wrapper.py \"Test the recording system\")",
+      "Bash(python:*)",
+      "Bash(ffmpeg:*)",
+      "Bash(sed:*)",
+      "Read(/Users/stathism/Downloads/hellofoo/**)",
+      "Bash(node:*)",
+      "Bash(pkill:*)",
+      "Bash(./terminal_control_wrapper.py)",
+      "Bash(kill:*)",
+      "Bash(lsof:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
