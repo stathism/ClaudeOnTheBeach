@@ -1,7 +1,7 @@
 # 🏖️ ClaudeOnTheBeach 🌊
 
 <p align="center">
-  <img src="ClaudeOnTheBeach.png" alt="ClaudeOnTheBeach Logo" width="600">
+  <img src="ClaudeOnTheBeach-circle.png" alt="ClaudeOnTheBeach Logo" width="300">
 </p>
 
 Control Claude Code from anywhere - even the beach! Watch output in real-time and send commands remotely via Telegram.
