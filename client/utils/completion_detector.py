@@ -216,11 +216,28 @@ class CompletionDetector:
         
         current_time = time.time()
         
-        # This would be called from the static screen detector
-        # For now, return a placeholder
+        if self.static_screen_start is None:
+            return {
+                'is_complete': False,
+                'duration': 0,
+                'reason': 'No static screen detected'
+            }
+        
+        duration = current_time - self.static_screen_start
+        
+        # Check if static for long enough to consider complete
+        if duration >= Config.STATIC_SCREEN_TIMEOUT:
+            return {
+                'is_complete': True,
+                'duration': duration,
+                'reason': f'Static screen timeout after {duration:.1f}s',
+                'method': 'timeout'
+            }
+        
         return {
             'is_complete': False,
-            'duration': 0
+            'duration': duration,
+            'reason': f'Static screen detected for {duration:.1f}s (need {Config.STATIC_SCREEN_TIMEOUT}s)'
         }
     
     def update_static_screen_status(self, is_static: bool, duration: float):

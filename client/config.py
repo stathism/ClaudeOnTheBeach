@@ -35,7 +35,7 @@ class Config:
     SCREENSHOT_SUFFIX = ".png"
     
     # WebSocket settings
-    DEFAULT_SERVER_URL = "wss://claudeonthebeach.com:443/ws"
+    DEFAULT_SERVER_URL = "wss://claudeonthebeach-production.up.railway.app/ws"
     PAIRING_TIMEOUT = 60
     
     # Status message patterns

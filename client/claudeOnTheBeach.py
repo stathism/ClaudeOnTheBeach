@@ -70,7 +70,7 @@ from utils.task_classifier import TaskClassifier
 
 class TerminalClaudeWrapper:
     def __init__(self, start_directory=None, screenshots_folder=None):
-        self.server_url = os.getenv('SERVER_URL', 'ws://claudeonthebeach.com:8081/ws')
+        self.server_url = os.getenv('SERVER_URL', 'wss://claudeonthebeach-production.up.railway.app/ws')
         self.pairing_code = self._generate_pairing_code()
         self.websocket = None
         self.paired = False
@@ -232,8 +232,14 @@ class TerminalClaudeWrapper:
             print(f"🔌 Connecting to: {ws_url}")
             
             try:
+                # Handle Railway SSL certificates
+                import ssl
+                ssl_context = ssl.create_default_context()
+                ssl_context.check_hostname = False
+                ssl_context.verify_mode = ssl.CERT_NONE
+                
                 self.websocket = await asyncio.wait_for(
-                    websockets.connect(ws_url),
+                    websockets.connect(ws_url, ssl=ssl_context),
                     timeout=5
                 )
             except asyncio.TimeoutError:
@@ -2549,7 +2555,18 @@ Examples:
                             static_result = self.static_screen_detector.update_screenshot(screenshot)
                             if static_result['should_complete']:
                                 print(f"🖥️ Static screen completion detected in monitoring loop: {static_result['static_duration']:.1f}s")
-                                # Reset detector (no notification sent to avoid clutter)
+                                
+                                # Use completion detector for proper analysis
+                                completion_result = self.completion_detector._check_static_screen_completion()
+                                
+                                if completion_result['is_complete']:
+                                    # Send completion notification to Telegram with timeout indication
+                                    await self.send_to_telegram('status', f"✅ Task completed (static screen timeout after {static_result['static_duration']:.1f}s)")
+                                    
+                                    # Mark as completed to prevent duplicate notifications
+                                    self.completion_sent = True
+                                
+                                # Reset detector
                                 self.static_screen_detector.reset()
                     self._last_static_check = time.time()
                 
@@ -2675,8 +2692,8 @@ async def main():
                        help='Starting directory for Claude (default: current directory)',
                        default=None)
     parser.add_argument('--server', '-s',
-                       help='WebSocket server URL (default: ws://claudeonthebeach.com:8081/ws)',
-                       default='ws://claudeonthebeach.com:8081/ws')
+                       help='WebSocket server URL (default: wss://claudeonthebeach-production.up.railway.app/ws)',
+                       default='wss://claudeonthebeach-production.up.railway.app/ws')
     parser.add_argument('--screenshots-folder', 
                        help='Folder to save screenshots locally (screenshots disabled by default)',
                        default=None)

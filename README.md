@@ -1,7 +1,7 @@
 # 🏖️ ClaudeOnTheBeach 🌊
 
 <p align="center">
-  <img src="ClaudeOnTheBeach.jpeg" alt="ClaudeOnTheBeach Logo" width="600">
+  <img src="ClaudeOnTheBeach.png" alt="ClaudeOnTheBeach Logo" width="600">
 </p>
 
 Control Claude Code from anywhere - even the beach! Watch output in real-time and send commands remotely via Telegram.
@@ -35,8 +35,8 @@ cd client && pip install -r requirements.txt && cd ..
 
 ### 2. Configure Environment (Optional)
 ```bash
-# Create .env file for custom server (optional - uses claudeonthebeach.com by default)
-echo "SERVER_URL=wss://your-server:443/ws" > .env
+# Create .env file for custom server (optional - uses Railway deployment by default)
+echo "SERVER_URL=wss://claudeonthebeach-production.up.railway.app/ws" > .env
 
 # Optional: Add Claude API key for intelligent analysis
 echo "ANTHROPIC_API_KEY=your_claude_api_key" >> .env
@@ -83,15 +83,6 @@ python3 client/claudeOnTheBeach.py --server ws://localhost:8081/ws
 
 ## 🐛 Troubleshooting
 
-### Common Issues
-```bash
-# Claude Code not found
-which claude-code
-
-# Check if Claude Code is installed
-claude-code --version
-```
-
 ### Bot Not Responding
 - Ensure you're using @ClaudeOnTheBeach_bot on Telegram
 - Try `/start` command in Telegram
@@ -103,6 +94,7 @@ claude-code --version
 - Sessions auto-cleanup after 2 hours
 - No sensitive data stored
 - All communication is session-based
+- **Check out the server code**: [server/index.js](server/index.js) - Full transparency on how your data is handled
 
 ## 🛠️ For Developers
 
