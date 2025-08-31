@@ -32,18 +32,24 @@ class CombinedClaudeServer {
         const isProduction = process.env.NODE_ENV === 'production';
         const useHttps = process.env.USE_HTTPS === 'true' || isProduction;
         
-        if (useHttps) {
-            // HTTPS server for production
-            const sslOptions = {
-                key: fs.readFileSync(process.env.SSL_KEY_PATH || '/etc/letsencrypt/live/your-domain/privkey.pem'),
-                cert: fs.readFileSync(process.env.SSL_CERT_PATH || '/etc/letsencrypt/live/your-domain/fullchain.pem')
-            };
-            this.server = https.createServer(sslOptions, this.app);
-            console.log('🔒 HTTPS server configured for production');
+        if (useHttps && process.env.SSL_KEY_PATH && process.env.SSL_CERT_PATH) {
+            // HTTPS server with custom SSL certificates
+            try {
+                const sslOptions = {
+                    key: fs.readFileSync(process.env.SSL_KEY_PATH),
+                    cert: fs.readFileSync(process.env.SSL_CERT_PATH)
+                };
+                this.server = https.createServer(sslOptions, this.app);
+                console.log('🔒 HTTPS server configured with custom SSL certificates');
+            } catch (error) {
+                console.log('⚠️ Custom SSL certificates not found, falling back to HTTP');
+                this.server = http.createServer(this.app);
+                console.log('🌐 HTTP server configured (Railway will handle HTTPS)');
+            }
         } else {
-            // HTTP server for development
+            // HTTP server (Railway will handle HTTPS automatically)
             this.server = http.createServer(this.app);
-            console.log('🌐 HTTP server configured for development');
+            console.log('🌐 HTTP server configured (Railway will handle HTTPS)');
         }
         
         this.wss = new WebSocket.Server({ server: this.server, path: '/ws' });
