@@ -119,8 +119,16 @@ class CombinedClaudeServer {
     setupHTTP() {
         this.app.use(express.json());
         
-        // Security: No public endpoints exposed
-        // Health and session endpoints removed for security
+        // Simple health check for Railway
+        this.app.get('/', (req, res) => {
+            res.json({
+                status: 'ok',
+                service: 'ClaudeOnTheBeach Server',
+                timestamp: new Date().toISOString()
+            });
+        });
+        
+        // Security: No other public endpoints exposed
         
         console.log('🌐 HTTP endpoints ready');
     }
