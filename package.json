@@ -1,0 +1,31 @@
+{
+  "name": "claud-on-the-beach",
+  "version": "1.0.0",
+  "description": "Control Claude Code from anywhere - even the beach! 🏖️",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "setup": "cd bot && npm run setup"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "node-telegram-bot-api": "^0.63.0",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": [
+    "claude",
+    "telegram",
+    "remote",
+    "control",
+    "beach",
+    "mobile",
+    "development"
+  ],
+  "author": "",
+  "license": "MIT"
+}
