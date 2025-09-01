@@ -8,7 +8,17 @@
 
 Watch ClaudeOnTheBeach in action! See how easy it is to control your Mac terminal from anywhere:
 
-<div style="position: relative; padding-bottom: 62.5%; height: 0;"><iframe src="https://www.loom.com/embed/d303677488d648739184a1a84f3adc0a?sid=131b5e6f-b403-46b1-b05b-3d2f8c918948" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe></div>
+### 🎬 Watch the Demo
+<div>
+  <a href="https://www.loom.com/share/d303677488d648739184a1a84f3adc0a">
+    <p>Claude on the Beach - Demo - Watch Video</p>
+  </a>
+  <a href="https://www.loom.com/share/d303677488d648739184a1a84f3adc0a">
+    <img style="max-width:300px;" src="https://cdn.loom.com/sessions/thumbnails/d303677488d648739184a1a84f3adc0a-9fad82951bff5010-full-play.gif">
+  </a>
+</div>
+
+**Click above to watch the full demo video on Loom** 🎥
 
 *Remote terminal control via Telegram - code from anywhere!* 🏖️💻
 
