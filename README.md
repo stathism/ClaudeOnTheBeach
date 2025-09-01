@@ -1,4 +1,4 @@
-# 🏖️ ClaudeOnTheBeach 🌊
+# 🏖️ Claude On The Beach 🌊
 
 <p align="center">
   <img src="ClaudeOnTheBeach-circle.png" alt="ClaudeOnTheBeach Logo" width="300">
@@ -6,8 +6,7 @@
 
 Control Claude Code from anywhere - even the beach! Watch output in real-time and send commands remotely via Telegram.
 
-**Why code from the office when you can code from the sand?** 🏝️
-🇬🇷✨
+**Why code from the office when you can code from the sand?** 🏝️ 🇬🇷✨
 
 ## 🌊 Features
 
@@ -15,8 +14,6 @@ Control Claude Code from anywhere - even the beach! Watch output in real-time an
 - 📸 **Screenshots** - Take terminal screenshots remotely
 - 🎬 **Video Recording** - 20-minute rolling recording buffer
 - 🧠 **Smart Detection** - Intelligent task completion and question detection
-- 🎯 **Task Classification** - Automatic task type recognition
-- 🛡️ **Stable System** - Robust recording and error handling
 
 ## 📋 Prerequisites
 
@@ -74,8 +71,6 @@ python3 client/claudeOnTheBeach.py --server ws://localhost:8081/ws
 - `/c vv>e` - Send keyboard commands (down, down, right, enter)
 - `//help` - Run Claude's help command
 - Any text - Send to Claude as input
-
-
 
 
 
