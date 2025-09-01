@@ -196,6 +196,7 @@ class TerminalClaudeWrapper:
         print(f"   • Working directory: {self.start_directory}")
         print("   • Recording: 20-minute rolling buffer")
         print("   • Screenshots: Automatic after commands")
+        print("   • LLM Analysis: Enabled (API key configured)")
         print()
         print("📋 AVAILABLE TELEGRAM COMMANDS:")
         print("   • /sc or /screenshot - Take screenshot now")
@@ -2687,7 +2688,7 @@ async def main():
     if not check_platform_support():
         sys.exit(1)
     
-    parser = argparse.ArgumentParser(description='Claude Remote Control via Terminal Automation')
+    parser = argparse.ArgumentParser(description='Claude Remote Control via Terminal Automation (ANTHROPIC_API_KEY required)')
     parser.add_argument('--directory', '-d', 
                        help='Starting directory for Claude (default: current directory)',
                        default=None)
@@ -2697,12 +2698,30 @@ async def main():
     parser.add_argument('--screenshots-folder', 
                        help='Folder to save screenshots locally (screenshots disabled by default)',
                        default=None)
+    parser.add_argument('--skip-api-check', 
+                       help='Skip ANTHROPIC_API_KEY requirement check (not recommended)',
+                       action='store_true')
     
     args = parser.parse_args()
     
     # Set server URL if provided
     if args.server:
         os.environ['SERVER_URL'] = args.server
+    
+    # Check for ANTHROPIC_API_KEY unless bypassed
+    if not args.skip_api_check:
+        api_key = os.getenv('ANTHROPIC_API_KEY')
+        if not api_key:
+            print("❌ ANTHROPIC_API_KEY environment variable is required!")
+            print("💡 Set it in your .env file or export it:")
+            print("   echo 'ANTHROPIC_API_KEY=your_key_here' > .env")
+            print("   # OR")
+            print("   export ANTHROPIC_API_KEY=your_key_here")
+            print("\n🔑 Get your API key from: https://console.anthropic.com/")
+            sys.exit(1)
+        print("✅ ANTHROPIC_API_KEY found")
+    else:
+        print("⚠️  Skipping API key check - LLM features will be disabled")
     
     # Resolve directory path
     start_dir = None

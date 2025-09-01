@@ -59,6 +59,9 @@ python3 client/claudeOnTheBeach.py --directory ~/myproject
 
 # Optional: Use custom server
 python3 client/claudeOnTheBeach.py --server ws://localhost:8081/ws
+
+# Optional: Skip API key check (not recommended - LLM features disabled)
+python3 client/claudeOnTheBeach.py --skip-api-check
 ```
 
 ### Connect via Telegram
