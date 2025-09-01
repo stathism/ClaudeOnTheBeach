@@ -1,8 +1,16 @@
 # 🏖️ Claude On The Beach 🌊
 
 <p align="center">
-  <img src="ClaudeOnTheBeach-circle.png" alt="ClaudeOnTheBeach Logo" width="300">
+  <img src="assets/ClaudeOnTheBeach-circle.png" alt="ClaudeOnTheBeach Logo" width="300">
 </p>
+
+## 🎥 Demo Video
+
+Watch ClaudeOnTheBeach in action! See how easy it is to control your Mac terminal from anywhere:
+
+<div style="position: relative; padding-bottom: 62.5%; height: 0;"><iframe src="https://www.loom.com/embed/d303677488d648739184a1a84f3adc0a?sid=131b5e6f-b403-46b1-b05b-3d2f8c918948" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe></div>
+
+*Remote terminal control via Telegram - code from anywhere!* 🏖️💻
 
 Control Claude Code from anywhere - even the beach! Watch output in real-time and send commands remotely via Telegram.
 
@@ -13,13 +21,14 @@ Control Claude Code from anywhere - even the beach! Watch output in real-time an
 - 🏄 **Remote Control** - Control Claude from anywhere with Telegram
 - 📸 **Screenshots** - Take terminal screenshots remotely
 - 🎬 **Video Recording** - 20-minute rolling recording buffer
-- 🧠 **Smart Detection** - Intelligent task completion and question detection
+- 🧠 **Smart Detection** - Intelligent task completion and question detection *(requires Claude API key)*
 
 ## 📋 Prerequisites
 
 - **Python 3** with pip
 - **Telegram** account
 - **[Claude Code CLI](https://docs.anthropic.com/claude/docs/claude-code)** installed
+- **Claude API Key** - [Get one here](https://console.anthropic.com/)
 - **macOS** (client only - server runs on any OS)
 
 ## 🛠️ Quick Setup
@@ -30,14 +39,14 @@ Control Claude Code from anywhere - even the beach! Watch output in real-time an
 cd client && pip install -r requirements.txt && cd ..
 ```
 
-### 2. Configure Environment (Optional)
+### 2. Configure Environment
 ```bash
-# Create .env file for custom server (optional - uses Railway deployment by default)
-echo "SERVER_URL=wss://claudeonthebeach-production.up.railway.app/ws" > .env
-
-# Optional: Add Claude API key for intelligent analysis
-echo "ANTHROPIC_API_KEY=your_claude_api_key" >> .env
+# Required: Add Claude API key for intelligent analysis
+echo "ANTHROPIC_API_KEY=your_claude_api_key" > .env
 ```
+
+**🔑 Claude API Key Required:**
+The Claude API key enables intelligent screenshot analysis, task completion detection, and question analysis. [Get one here](https://console.anthropic.com/).
 
 ## 🚀 Quick Start
 
@@ -83,6 +92,8 @@ python3 client/claudeOnTheBeach.py --server ws://localhost:8081/ws
 - Try `/start` command in Telegram
 - Check your internet connection
 
+
+
 ## 🔒 Security
 
 - Pairing codes expire after 30 minutes
@@ -90,6 +101,8 @@ python3 client/claudeOnTheBeach.py --server ws://localhost:8081/ws
 - No sensitive data stored
 - All communication is session-based
 - **Check out the server code**: [server/index.js](server/index.js) - Full transparency on how your data is handled
+
+
 
 ## 🛠️ For Developers
 
@@ -104,16 +117,14 @@ Want to run your own server? See [`server/README.md`](server/README.md) for deta
 
 ## 🎉 Why This is Awesome
 
-Imagine this: You're lounging on a beautiful Greek beach 🏖️, sipping your frappé ☕, and suddenly you remember you need to check on that Python script you left running. Instead of rushing back to your laptop, you just pull out your phone and:
+Control Claude Code from anywhere - even the beach! 🏖️✨
 
-- 📱 **Check the output** - See what Claude is doing in real-time
-- 🎬 **Watch the recording** - See the last 20 minutes of activity
-- 📸 **Take a screenshot** - Capture the current state
+- 📱 **Check output** - See what Claude is doing in real-time
+- 🎬 **Watch recordings** - 20-minute rolling buffer of activity
+- 📸 **Take screenshots** - Capture the current state
 - ⌨️ **Send commands** - Tell Claude what to do next
 
-**That's the Greek way - take something simple and make it even more convenient!** 🇬🇷
-
-From the beaches of Mykonos to the cafes of Athens, now you can code from anywhere. Because why should your coding be limited by location when you can have the power of Claude in your pocket? 📱✨
+**Code from anywhere, control from everywhere!** 📱💻
 
 ## 📝 License
 
