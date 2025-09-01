@@ -144,24 +144,29 @@ class CombinedClaudeServer {
                 console.log(`✅ Created new session for ${pairingCode}`);
             }
             
+            // Set connection metadata
             session.wrapperWs = ws;
             session.lastActivity = new Date();
+            session.connectionStart = new Date();
+            session.remoteAddress = req.socket.remoteAddress;
+            
+            // Add connection to active connections tracking
+            if (!this.activeConnections) {
+                this.activeConnections = new Set();
+            }
+            this.activeConnections.add(ws);
+            console.log(`📊 Connection tracking: ${this.activeConnections.size} total connections`);
             
             // Handle WebSocket close
             ws.on('close', (code, reason) => {
                 console.log(`🔌 WebSocket connection closed for ${pairingCode}: ${code} - ${reason}`);
-                if (session) {
-                    session.wrapperWs = null;
-                    session.lastActivity = new Date();
-                }
+                this.handleConnectionClose(ws, session, pairingCode);
             });
             
             // Handle WebSocket errors
             ws.on('error', (error) => {
                 console.error(`❌ WebSocket error for ${pairingCode}:`, error.message);
-                if (session) {
-                    session.wrapperWs = null;
-                }
+                this.handleConnectionClose(ws, session, pairingCode);
             });
             
             // Send pairing confirmation if already paired with Telegram
@@ -190,20 +195,105 @@ class CombinedClaudeServer {
                     console.error('❌ Error processing wrapper message:', error);
                 }
             });
-            
-            ws.on('close', () => {
-                console.log(`🔌 Wrapper disconnected: ${pairingCode}`);
-                if (session) {
-                    session.wrapperWs = null;
-                }
-            });
-            
-            ws.on('error', (error) => {
-                console.error('❌ WebSocket error:', error);
-            });
         });
         
-        console.log('🔌 WebSocket server ready');
+        console.log('🔌 WebSocket server ready with enhanced connection tracking');
+    }
+    
+    handleConnectionClose(ws, session, pairingCode) {
+        // Remove from active connections
+        if (this.activeConnections) {
+            this.activeConnections.delete(ws);
+        }
+        
+        // Clean up session if connection is dead
+        if (session) {
+            session.wrapperWs = null;
+            session.lastActivity = new Date();
+            
+            // If session has been inactive for too long, clean it up
+            const now = new Date();
+            const maxInactiveTime = 5 * 60 * 1000; // 5 minutes
+            
+            if (now - session.lastActivity > maxInactiveTime) {
+                console.log(`🗑️ Cleaning up inactive session: ${pairingCode}`);
+                this.cleanupSession(pairingCode);
+            }
+        }
+        
+        console.log(`📊 Active connections: ${this.activeConnections ? this.activeConnections.size : 0}`);
+    }
+    
+    cleanupSession(pairingCode) {
+        const session = this.sessions.get(pairingCode);
+        if (session) {
+            // Notify Telegram user if paired
+            if (session.paired && session.telegramChatId) {
+                try {
+                    this.bot.sendMessage(session.telegramChatId, 
+                        `❌ Connection lost to Claude session \`${pairingCode}\`\n\n💡 To reconnect:\n1️⃣ Send /d or /disconnect to end this session\n2️⃣ Send a new pairing code from your computer`);
+                } catch (error) {
+                    console.log(`⚠️ Could not notify Telegram user ${session.telegramChatId}:`, error.message);
+                }
+                
+                // Remove from user sessions
+                this.userSessions.delete(session.telegramChatId);
+            }
+            
+            // Remove session
+            this.sessions.delete(pairingCode);
+            console.log(`✅ Cleaned up session: ${pairingCode}`);
+        }
+    }
+    
+    getConnectionHealth() {
+        if (!this.activeConnections) {
+            return { total: 0, healthy: 0 };
+        }
+        
+        const total = this.activeConnections.size;
+        const healthy = Array.from(this.activeConnections).filter(ws => 
+            ws.readyState === WebSocket.OPEN
+        ).length;
+        
+        return { total, healthy };
+    }
+    
+    forceCleanup() {
+        console.log('🧹 Force cleanup initiated...');
+        
+        let cleanedSessions = 0;
+        let cleanedUserSessions = 0;
+        let cleanedConnections = 0;
+        
+        // Clean up dead connections
+        if (this.activeConnections) {
+            for (const ws of this.activeConnections) {
+                if (ws.readyState !== WebSocket.OPEN) {
+                    this.activeConnections.delete(ws);
+                    cleanedConnections++;
+                }
+            }
+        }
+        
+        // Clean up sessions with dead connections
+        for (const [code, session] of this.sessions.entries()) {
+            if (session.wrapperWs && session.wrapperWs.readyState !== WebSocket.OPEN) {
+                this.cleanupSession(code);
+                cleanedSessions++;
+            }
+        }
+        
+        // Clean up orphaned user sessions
+        for (const [chatId, session] of this.userSessions.entries()) {
+            if (!this.sessions.has(session.pairingCode)) {
+                this.userSessions.delete(chatId);
+                cleanedUserSessions++;
+            }
+        }
+        
+        console.log(`🧹 Force cleanup completed: ${cleanedConnections} connections, ${cleanedSessions} sessions, ${cleanedUserSessions} user sessions`);
+        return { connections: cleanedConnections, sessions: cleanedSessions, userSessions: cleanedUserSessions };
     }
     
     setupTelegramBot() {
@@ -253,6 +343,9 @@ Once connected, you'll see Claude's output and can send commands directly!
 • All Claude commands can be accessed by using double //
 • Examples: //help //init //shortcuts //search //exit
 
+🧹 *Admin Commands:*
+• /cleanup or /debug - Force cleanup of dead connections
+
 💡 *Tips:*
 • Commands are processed immediately
 • Recording starts automatically when paired
@@ -266,7 +359,9 @@ Once connected, you'll see Claude's output and can send commands directly!
             const session = this.userSessions.get(chatId);
             
             if (session) {
-                const wrapperStatus = session.wrapperWs ? '🟢 Connected' : '🔴 Disconnected';
+                const wrapperStatus = session.wrapperWs && session.wrapperWs.readyState === WebSocket.OPEN ? '🟢 Connected' : '🔴 Disconnected';
+                const connectionHealth = this.getConnectionHealth();
+                
                 this.bot.sendMessage(chatId, `
 ✅ *Connected to Claude*
 
@@ -274,6 +369,11 @@ Pairing Code: \`${session.pairingCode}\`
 Wrapper: ${wrapperStatus}
 Connected: ${session.createdAt.toLocaleString()}
 Last activity: ${session.lastActivity.toLocaleString()}
+
+📊 *Server Status:*
+• Active sessions: ${this.sessions.size}
+• Active connections: ${connectionHealth.total}
+• Healthy connections: ${connectionHealth.healthy}
 
 Send any message to control Claude!
                 `, { parse_mode: 'Markdown' });
@@ -299,6 +399,38 @@ Send any message to control Claude!
             }
         });
         
+        // Debug cleanup command (admin only)
+        this.bot.onText(/^\/(cleanup|debug)(\s|$)/, (msg) => {
+            const chatId = msg.chat.id;
+            
+            // Only allow cleanup from specific admin users (optional security)
+            // You can add admin user IDs here if needed
+            // const adminUsers = ['123456789', '987654321'];
+            // if (!adminUsers.includes(chatId.toString())) {
+            //     this.bot.sendMessage(chatId, '❌ Admin access required for this command.');
+            //     return;
+            // }
+            
+            const result = this.forceCleanup();
+            const health = this.getConnectionHealth();
+            
+            this.bot.sendMessage(chatId, `
+🧹 *Force Cleanup Completed*
+
+📊 *Cleanup Results:*
+• Dead connections: ${result.connections}
+• Dead sessions: ${result.sessions}
+• Orphaned user sessions: ${result.userSessions}
+
+📈 *Current Health:*
+• Active sessions: ${this.sessions.size}
+• Active connections: ${health.total}
+• Healthy connections: ${health.healthy}
+
+✅ Server cleaned up and optimized!
+            `, { parse_mode: 'Markdown' });
+        });
+        
         // Handle all other messages (pairing codes and commands)
         this.bot.on('message', (msg) => {
             const chatId = msg.chat.id;
@@ -310,7 +442,7 @@ Send any message to control Claude!
             }
             
             // Only skip these specific bot commands
-            const skipCommands = ['/start', '/help', '/h', '/status', '/t', '/disconnect', '/ds', '/d'];
+            const skipCommands = ['/start', '/help', '/h', '/status', '/t', '/disconnect', '/ds', '/d', '/cleanup', '/debug'];
             if (text.startsWith('/') && skipCommands.includes(text.split(' ')[0])) {
                 return;
             }
@@ -512,23 +644,85 @@ python3 client/claudeOnTheBeach.py
     }
     
     setupCleanup() {
-        // Cleanup inactive sessions every 10 minutes
+        // Cleanup inactive sessions every 5 minutes (more frequent)
         setInterval(() => {
             const now = new Date();
-            const maxAge = 2 * 60 * 60 * 1000; // 2 hours
+            const maxAge = 2 * 60 * 60 * 1000; // 2 hours for old sessions
+            const maxInactiveTime = 3 * 60 * 1000; // 3 minutes for inactive connections
+            
+            let cleanedSessions = 0;
+            let cleanedUserSessions = 0;
             
             for (const [code, session] of this.sessions.entries()) {
-                if (now - session.lastActivity > maxAge) {
-                    this.sessions.delete(code);
-                    if (session.telegramChatId) {
-                        this.userSessions.delete(session.telegramChatId);
-                    }
-                    console.log(`🗑️ Cleaned up inactive session: ${code}`);
+                let shouldCleanup = false;
+                
+                // Clean up very old sessions
+                if (now - session.createdAt > maxAge) {
+                    shouldCleanup = true;
+                    console.log(`🗑️ Cleaning up old session: ${code} (age: ${Math.round((now - session.createdAt) / 60000)}m)`);
+                }
+                
+                // Clean up sessions with dead connections
+                if (session.wrapperWs && session.wrapperWs.readyState !== WebSocket.OPEN) {
+                    shouldCleanup = true;
+                    console.log(`🗑️ Cleaning up session with dead connection: ${code}`);
+                }
+                
+                // Clean up inactive sessions
+                if (now - session.lastActivity > maxInactiveTime) {
+                    shouldCleanup = true;
+                    console.log(`🗑️ Cleaning up inactive session: ${code} (inactive: ${Math.round((now - session.lastActivity) / 60000)}m)`);
+                }
+                
+                if (shouldCleanup) {
+                    this.cleanupSession(code);
+                    cleanedSessions++;
                 }
             }
-        }, 10 * 60 * 1000);
+            
+            // Clean up orphaned user sessions
+            for (const [chatId, session] of this.userSessions.entries()) {
+                if (!this.sessions.has(session.pairingCode)) {
+                    this.userSessions.delete(chatId);
+                    cleanedUserSessions++;
+                    console.log(`🗑️ Cleaned up orphaned user session: ${chatId}`);
+                }
+            }
+            
+            if (cleanedSessions > 0 || cleanedUserSessions > 0) {
+                console.log(`🧹 Cleanup completed: ${cleanedSessions} sessions, ${cleanedUserSessions} user sessions`);
+                console.log(`📊 Active sessions: ${this.sessions.size}, Active user sessions: ${this.userSessions.size}`);
+            }
+            
+            // Log connection health
+            if (this.activeConnections) {
+                const healthyConnections = Array.from(this.activeConnections).filter(ws => 
+                    ws.readyState === WebSocket.OPEN
+                ).length;
+                console.log(`📊 Connection health: ${healthyConnections}/${this.activeConnections.size} healthy`);
+            }
+            
+        }, 5 * 60 * 1000); // Every 5 minutes
         
-        console.log('🧹 Cleanup scheduler ready');
+        // More aggressive cleanup for dead connections every 2 minutes
+        setInterval(() => {
+            if (this.activeConnections) {
+                let deadConnections = 0;
+                
+                for (const ws of this.activeConnections) {
+                    if (ws.readyState !== WebSocket.OPEN) {
+                        this.activeConnections.delete(ws);
+                        deadConnections++;
+                    }
+                }
+                
+                if (deadConnections > 0) {
+                    console.log(`🧹 Cleaned up ${deadConnections} dead connections`);
+                }
+            }
+        }, 2 * 60 * 1000); // Every 2 minutes
+        
+        console.log('🧹 Enhanced cleanup scheduler ready');
     }
     
     async shutdown() {
