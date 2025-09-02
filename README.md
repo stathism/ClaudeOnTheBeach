@@ -6,7 +6,7 @@
 
 ## 🎥 Demo Video
 
-Watch ClaudeOnTheBeach in action! See how easy it is to control your Mac terminal from anywhere:
+Watch ClaudeOnTheBeach in action! See how easy it is to control your Claude Code terminal from anywhere:
 
 ### 🎬 Watch the Demo
 <div>
